@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# This script helps to disable a virtual host for nginx
+# Copyright (c) 2017 Jeon Sang Wan All rights Reserved
+# Idea from a2dissite, but no code reference.
+
+if [ "$(id -u)" != "0" ]; then
+        echo "This script must be run as root"
+        exit 1
+fi
+
+
+if [ -z "$1" ]; then
+        echo "No argument passed"
+        exit 1
+fi
+
+linkname="/etc/nginx/sites-enabled/$1.conf"
+
+if [ ! -e "$linkname" ]; then
+        echo "No file found"
+        exit 1
+fi
+
+rm "$linkname"

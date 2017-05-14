@@ -1,0 +1,49 @@
+#!/bin/sh
+
+# This script helps to make a virtual host for node.js and nginx by proxy
+# Copyright (c) 2017 Jeon Sang Wan All rights Reserved
+
+if [ "$(id -u)" -eq  "0" ]; then
+	echo "This script must be run as user, not root"
+	exit 1
+fi
+
+printf "Site name (url) : "
+read name
+
+filename="/etc/nginx/sites-available/$name.conf"
+
+printf "Internal port : "
+read port
+
+if [ -e "$filename" ]; then
+	echo "File exists"
+	exit 1
+fi
+
+touch "$filename"
+
+echo "server {" 			>> "$filename"
+echo "	" 			>> "$filename"
+echo "	listen 80"		>> "$filename"
+echo "	listen [::}:80"		>> "$filename"
+echo "	server_name $name"	>> "$filename"
+echo "	location / {"		>> "$filename"
+echo "		proxy_set_header X-Real-IP $remote_addr;"			>> "$filename"
+echo "		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;"	>> "$filename"
+echo "		proxy_set_header Host $http_host;"				>> "$filename"
+echo "		proxy_set_header X-NginX-Proxy true;"				>> "$filename"
+echo "		proxy_pass http://127.0.0.1:$port/;"				>> "$filename"
+echo "		proxy_redirect off;"						>> "$filename"
+echo "	}"			>> "$filename"
+echo "	gzip on;"		>> "$filename"
+echo "	gzip_comp_level 2;"	>> "$filename"
+echo "	gzip_proxied any;"	>> "$filename"
+echo "	gzip_min_length 1000;"	>> "$filename"
+echo "	gzip_disable \"MSIE [1-6]\.\";" >> "$filename"
+echo "	gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;" >> "$filename"
+echo "	"			>> "$filename"
+echo "}"	>> "$filename"
+
+echo "Made a conf file for $name at $filename"
+echo "You should enable conf by 'n2ensite $name' or creating a symlink in '/etc/nginx/sites-enabled/"
